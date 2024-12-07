@@ -1,5 +1,7 @@
 package main;
 
+import com.sun.security.jgss.GSSUtil;
+
 import javax.swing.JPanel;
 import java.awt.*;
 
@@ -14,6 +16,9 @@ public class GamePanel extends JPanel implements Runnable{
     final int maxScreenRow = 12;
     final int screenWidth = tileSize * maxScreenCol; //768
     final int screenHeight = tileSize * maxScreenRow;//576
+
+    //FPS
+    int FPS=60;
 
     KeyHandler keyH = new KeyHandler();
     Thread gameThread;
@@ -37,19 +42,61 @@ public class GamePanel extends JPanel implements Runnable{
     }
 
     @Override
-    public void run() {
-
+//    public void run() {
+//        double drawInterval=1000000000/FPS; // 0.01666 seconds
+//        double nextDrawTime = System.nanoTime() + drawInterval;
+//        while(gameThread != null){
+//
+//            update();
+//
+//            repaint();
+//
+//            try{
+//                double remainingTime = nextDrawTime - System.nanoTime();
+//                remainingTime = remainingTime/1000000;
+//
+//                if(remainingTime<0){
+//                    remainingTime=0;
+//
+//                }
+//                Thread.sleep((long) remainingTime);
+//
+//                nextDrawTime += drawInterval;
+//
+//            }catch(InterruptedException e){
+//                e.printStackTrace();
+//            }
+//        }
+//    }
+public void run(){
+        double drawInterval = 1000000000/FPS; // 0.01666 seconds
+        double delta = 0;
+        long lastTime= System.nanoTime();
+        long currentTime;
+        long timer=0;
+        long drawCount = 0;
         while(gameThread != null){
+            currentTime = System.nanoTime();
 
-            //UPDATE THE COORDINATES
-            update();
+            delta += (currentTime - lastTime) / drawInterval;
+            timer+= (currentTime - lastTime);
+            lastTime = currentTime;
 
-            //DRAW THE NEW COORDINATES IN THE SCREEN
-            repaint();
-            System.out.println("Running");
+            if(delta>=1) {
+                update();
+                repaint();
+                delta--;
+                drawCount++;
+            }
+
+            if(timer>=1000000000){
+                System.out.println("FPS: "+drawCount);
+                drawCount=0;
+                timer=0;
+            }
         }
-    }
 
+    }
     public void update(){
         if(keyH.upPressed==true){
             playerY -= playerSpeed;
